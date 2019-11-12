@@ -1,0 +1,5 @@
+config BR2_PACKAGE_BBBWL_FIRMWARES
+	bool "Beagle Bone Black Wireless Firmwares"
+	default y
+	select BR2_PACKAGE_LINUX_FIRMWARE
+	select BR2_PACKAGE_LINUX_FIRMWARE_TI_WL18XX

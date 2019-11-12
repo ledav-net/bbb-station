@@ -1,0 +1,4 @@
+dht11='/sensors/dht11'
+vma407='/sensors/vma407'
+tsl2561='/sensors/tsl2561'
+sgp30='/sensors/sgp30'

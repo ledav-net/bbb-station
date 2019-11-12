@@ -1,0 +1,54 @@
+#!/bin/bash
+
+# Copyright (C) 2018 David De Grave <david@ledav.net>
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, version 3.
+#
+# This program is distributed in the hope that it will be useful, but
+# WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+# General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program. If not, see <http://www.gnu.org/licenses/>.
+
+set -e
+
+MAINDIR=$(sed -n 's/BR2_DEFCONFIG="\(.*_defconfig\)"/\1/ p' < "$BR2_CONFIG")
+MAINDIR=$(readlink -f "${MAINDIR%/*}/..")
+SCRNAME=$(readlink -f "$0")
+SCRNAME=${SCRNAME#$MAINDIR/}
+
+. "$MAINDIR"/scripts/include/log || exit 1
+
+logTitle "Running $SCRNAME ..."
+
+. "$BR2_EXTERNAL_BBB_STATION_PATH"/secure || true
+. "$MAINDIR"/projects/common/post-build-hook || exit $?
+
+log "Fixing target paths ..."
+if [ -h "$TARGET_DIR"/var/spool ]; then
+	rm -f "$TARGET_DIR"/var/spool
+	mkdir "$TARGET_DIR"/var/spool
+	mv "$TARGET_DIR"/tmp/cron "$TARGET_DIR"/var/spool/
+fi
+if [ -h "$TARGET_DIR"/var/tmp ]; then
+	rm -f "$TARGET_DIR"/var/tmp
+	mkdir "$TARGET_DIR"/var/tmp
+fi
+
+if [ -e "$TARGET_DIR"/etc/wpa_supplicant.conf ]
+then
+	log "Patching wpa_supplicant.conf with access key ..."
+	[ -z "$WPA_STA" -o -z "$WPA_PSW" ] && \
+		die "Please set WPA_STA & WPA_PSW to setup wpa_supplicant"
+
+	sed -i -e "s/==STATION==/${WPA_STA}/" \
+	       -e "s/==PASSWORD==/${WPA_PSW}/" \
+		"$TARGET_DIR"/etc/wpa_supplicant.conf
+fi
+
+logTitle "$SCRNAME done!"
+exit 0

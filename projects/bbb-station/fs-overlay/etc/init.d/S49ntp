@@ -1,0 +1,40 @@
+#! /bin/sh
+
+NAME=ntpd
+
+# Read config file if it is present.
+[ -s /etc/default/$NAME ] && . /etc/default/$NAME
+[ -s /etc/default/network-config ] && . /etc/default/network-config
+
+if [ -z $NTPSERVER ]; then
+	NTPSERVER=${ntpsrv:-$router}
+fi
+
+case "$1" in
+  start)
+    printf "Updating system time from $NTPSERVER: "
+    ntpdate $NTPSERVER
+    [ $? = 0 ] && echo "OK" || echo "FAIL"
+
+    printf "Starting $NAME: "
+    start-stop-daemon -S -q -x /usr/sbin/ntpd -- -p $NTPSERVER
+    [ $? = 0 ] && echo "OK" || echo "FAIL"
+    ;;
+  stop)
+    printf "Stopping $NAME: "
+    start-stop-daemon -K -q -n $NAME
+    [ $? = 0 ] && echo "OK" || echo "FAIL"
+    ;;
+  restart|reload)
+    echo "Restarting $NAME: "
+    $0 stop
+    sleep 1
+    $0 start
+    ;;
+  *)
+    echo "Usage: $0 {start|stop|restart|reload}" >&2
+    exit 1
+    ;;
+esac
+
+exit 0

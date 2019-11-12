@@ -1,0 +1,2 @@
+### CONFIG_MULTI_DTB_FIT=y
+### CONFIG_OF_LIST="am335x-boneblack-wireless dht11"

@@ -1,0 +1,2 @@
+SYSLOGD_ARGS="-R master -L"
+

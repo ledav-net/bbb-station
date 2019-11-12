@@ -1,0 +1,17 @@
+
+config BR2_PACKAGE_SGP30
+	bool "sgp30/sgpc3"
+	depends on BR2_LINUX_KERNEL
+	help
+          I2C interface support for the following
+          Sensirion SGP multi-pixel gas sensors:
+
+            * SGP30 gas sensor
+            * SGPC3 low power gas sensor
+
+          This module will be called sgp30.
+
+	  Requires CONFIG_CRC8 & CONFIG_IIO
+
+comment "sgp30/sgpc3 needs a Linux kernel to be built"
+        depends on !BR2_LINUX_KERNEL

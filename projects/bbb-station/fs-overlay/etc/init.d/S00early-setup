@@ -1,0 +1,30 @@
+#!/bin/sh
+#
+# Setup basic stuff needed by services
+#
+# Note: This is mainly necessary for creating directories/files
+#       missing in locations that links to a tmpfs mount like
+#       /var/log aso...
+
+case "$1" in
+  start)
+  	# wtmp stuff
+	echo -n "Preconfiguring system ... "
+	touch /var/log/wtmp /var/log/lastlog
+	mkdir /var/log/lighttpd && \
+	  chown www-data /var/log/lighttpd
+	echo "OK"
+	;;
+
+  stop) ;;
+
+  restart|reload)
+	"$0" stop
+	"$0" start
+	;;
+  *)
+	echo "Usage: $0 {start|stop|restart}"
+	exit 1
+esac
+
+exit $?

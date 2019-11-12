@@ -1,0 +1,2 @@
+source "../package/bbbwl-firmwares/Config.in"
+source "../package/sgp30/Config.in"

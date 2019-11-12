@@ -1,0 +1,20 @@
+
+For security reasons, the file "secure" is omitted from in this repo.
+You have to (should) create it with the following content:
+
+# Start of "secure" file
+
+WPA_STA=<station to connect to at startup>
+WPA_PSW=<password of that AP>
+
+SSH_KEYS=("<ssh-rsa key 1>" "<ssh-rsa key 2>" "<...>")
+
+# end
+
+Ex:
+WPA_STA=my-local-wifi
+WPA_PSW=the_password
+
+SSH_KEYS=("ssh-rsa AAAB..... someone@somewhere.com")
+
+That file will be included into the build process when needed.

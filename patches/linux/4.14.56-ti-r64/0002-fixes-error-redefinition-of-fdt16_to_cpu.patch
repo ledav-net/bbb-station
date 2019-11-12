@@ -1,0 +1,228 @@
+/*
+ * Copyright (C) 2009 David De Grave <david@ledav.net>
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, version 3.
+ *
+ * This program is distributed in the hope that it will be useful, but
+ * WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+ * General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program. If not, see <http://www.gnu.org/licenses/>.
+ */
+diff -ru a/scripts/dtc/dtc.h b/scripts/dtc/dtc.h
+--- a/scripts/dtc/dtc.h	2018-08-20 22:31:57.000000000 +0200
++++ b/scripts/dtc/dtc.h	2018-08-29 04:50:16.666935480 +0200
+@@ -33,8 +33,8 @@
+ #include <unistd.h>
+ #include <inttypes.h>
+ 
+-#include <libfdt_env.h>
+-#include <fdt.h>
++#include "libfdt/libfdt_env.h"
++#include "libfdt/fdt.h"
+ 
+ #include "util.h"
+ 
+diff -ru a/scripts/dtc/fdtdump.c b/scripts/dtc/fdtdump.c
+--- a/scripts/dtc/fdtdump.c	2018-08-20 22:31:57.000000000 +0200
++++ b/scripts/dtc/fdtdump.c	2018-08-29 04:49:40.591866927 +0200
+@@ -9,8 +9,8 @@
+ #include <string.h>
+ #include <ctype.h>
+ 
+-#include <fdt.h>
+-#include <libfdt_env.h>
++#include "libfdt/fdt.h"
++#include "libfdt/libfdt_env.h"
+ 
+ #include "util.h"
+ 
+diff -ru a/scripts/dtc/fdtget.c b/scripts/dtc/fdtget.c
+--- a/scripts/dtc/fdtget.c	2018-08-20 22:31:57.000000000 +0200
++++ b/scripts/dtc/fdtget.c	2018-08-29 04:49:44.896875104 +0200
+@@ -30,7 +30,7 @@
+ #include <stdlib.h>
+ #include <string.h>
+ 
+-#include <libfdt.h>
++#include "libfdt/libfdt.h"
+ 
+ #include "util.h"
+ 
+diff -ru a/scripts/dtc/fdtoverlay.c b/scripts/dtc/fdtoverlay.c
+--- a/scripts/dtc/fdtoverlay.c	2018-08-20 22:31:57.000000000 +0200
++++ b/scripts/dtc/fdtoverlay.c	2018-08-29 04:49:49.340883551 +0200
+@@ -29,7 +29,7 @@
+ #include <alloca.h>
+ #include <inttypes.h>
+ 
+-#include <libfdt.h>
++#include "libfdt/libfdt.h"
+ 
+ #include "util.h"
+ 
+diff -ru a/scripts/dtc/fdtput.c b/scripts/dtc/fdtput.c
+--- a/scripts/dtc/fdtput.c	2018-08-20 22:31:57.000000000 +0200
++++ b/scripts/dtc/fdtput.c	2018-08-29 04:49:52.958890426 +0200
+@@ -24,7 +24,7 @@
+ #include <stdlib.h>
+ #include <string.h>
+ 
+-#include <libfdt.h>
++#include "libfdt/libfdt.h"
+ 
+ #include "util.h"
+ 
+diff -ru a/scripts/dtc/libfdt/fdt_addresses.c b/scripts/dtc/libfdt/fdt_addresses.c
+--- a/scripts/dtc/libfdt/fdt_addresses.c	2018-08-20 22:31:57.000000000 +0200
++++ b/scripts/dtc/libfdt/fdt_addresses.c	2018-08-29 04:04:17.321885927 +0200
+@@ -50,8 +50,8 @@
+  */
+ #include "libfdt_env.h"
+ 
+-#include <fdt.h>
+-#include <libfdt.h>
++#include "fdt.h"
++#include "libfdt.h"
+ 
+ #include "libfdt_internal.h"
+ 
+diff -ru a/scripts/dtc/libfdt/fdt.c b/scripts/dtc/libfdt/fdt.c
+--- a/scripts/dtc/libfdt/fdt.c	2018-08-20 22:31:57.000000000 +0200
++++ b/scripts/dtc/libfdt/fdt.c	2018-08-29 04:04:17.322885930 +0200
+@@ -50,8 +50,8 @@
+  */
+ #include "libfdt_env.h"
+ 
+-#include <fdt.h>
+-#include <libfdt.h>
++#include "fdt.h"
++#include "libfdt.h"
+ 
+ #include "libfdt_internal.h"
+ 
+diff -ru a/scripts/dtc/libfdt/fdt_empty_tree.c b/scripts/dtc/libfdt/fdt_empty_tree.c
+--- a/scripts/dtc/libfdt/fdt_empty_tree.c	2018-08-20 22:31:57.000000000 +0200
++++ b/scripts/dtc/libfdt/fdt_empty_tree.c	2018-08-29 04:04:17.323885933 +0200
+@@ -50,8 +50,8 @@
+  */
+ #include "libfdt_env.h"
+ 
+-#include <fdt.h>
+-#include <libfdt.h>
++#include "fdt.h"
++#include "libfdt.h"
+ 
+ #include "libfdt_internal.h"
+ 
+diff -ru a/scripts/dtc/libfdt/fdt_overlay.c b/scripts/dtc/libfdt/fdt_overlay.c
+--- a/scripts/dtc/libfdt/fdt_overlay.c	2018-08-20 22:31:57.000000000 +0200
++++ b/scripts/dtc/libfdt/fdt_overlay.c	2018-08-29 04:04:17.326885941 +0200
+@@ -1,7 +1,7 @@
+ #include "libfdt_env.h"
+ 
+-#include <fdt.h>
+-#include <libfdt.h>
++#include "fdt.h"
++#include "libfdt.h"
+ 
+ #include "libfdt_internal.h"
+ 
+diff -ru a/scripts/dtc/libfdt/fdt_ro.c b/scripts/dtc/libfdt/fdt_ro.c
+--- a/scripts/dtc/libfdt/fdt_ro.c	2018-08-20 22:31:57.000000000 +0200
++++ b/scripts/dtc/libfdt/fdt_ro.c	2018-08-29 04:04:17.329885950 +0200
+@@ -50,8 +50,8 @@
+  */
+ #include "libfdt_env.h"
+ 
+-#include <fdt.h>
+-#include <libfdt.h>
++#include "fdt.h"
++#include "libfdt.h"
+ 
+ #include "libfdt_internal.h"
+ 
+diff -ru a/scripts/dtc/libfdt/fdt_rw.c b/scripts/dtc/libfdt/fdt_rw.c
+--- a/scripts/dtc/libfdt/fdt_rw.c	2018-08-20 22:31:57.000000000 +0200
++++ b/scripts/dtc/libfdt/fdt_rw.c	2018-08-29 04:04:17.332885958 +0200
+@@ -50,8 +50,8 @@
+  */
+ #include "libfdt_env.h"
+ 
+-#include <fdt.h>
+-#include <libfdt.h>
++#include "fdt.h"
++#include "libfdt.h"
+ 
+ #include "libfdt_internal.h"
+ 
+diff -ru a/scripts/dtc/libfdt/fdt_strerror.c b/scripts/dtc/libfdt/fdt_strerror.c
+--- a/scripts/dtc/libfdt/fdt_strerror.c	2018-08-20 22:31:57.000000000 +0200
++++ b/scripts/dtc/libfdt/fdt_strerror.c	2018-08-29 04:04:17.333885961 +0200
+@@ -50,8 +50,8 @@
+  */
+ #include "libfdt_env.h"
+ 
+-#include <fdt.h>
+-#include <libfdt.h>
++#include "fdt.h"
++#include "libfdt.h"
+ 
+ #include "libfdt_internal.h"
+ 
+diff -ru a/scripts/dtc/libfdt/fdt_sw.c b/scripts/dtc/libfdt/fdt_sw.c
+--- a/scripts/dtc/libfdt/fdt_sw.c	2018-08-20 22:31:57.000000000 +0200
++++ b/scripts/dtc/libfdt/fdt_sw.c	2018-08-29 04:04:17.335885966 +0200
+@@ -50,8 +50,8 @@
+  */
+ #include "libfdt_env.h"
+ 
+-#include <fdt.h>
+-#include <libfdt.h>
++#include "fdt.h"
++#include "libfdt.h"
+ 
+ #include "libfdt_internal.h"
+ 
+diff -ru a/scripts/dtc/libfdt/fdt_wip.c b/scripts/dtc/libfdt/fdt_wip.c
+--- a/scripts/dtc/libfdt/fdt_wip.c	2018-08-20 22:31:57.000000000 +0200
++++ b/scripts/dtc/libfdt/fdt_wip.c	2018-08-29 04:04:17.336885969 +0200
+@@ -50,8 +50,8 @@
+  */
+ #include "libfdt_env.h"
+ 
+-#include <fdt.h>
+-#include <libfdt.h>
++#include "fdt.h"
++#include "libfdt.h"
+ 
+ #include "libfdt_internal.h"
+ 
+diff -ru a/scripts/dtc/libfdt/libfdt_internal.h b/scripts/dtc/libfdt/libfdt_internal.h
+--- a/scripts/dtc/libfdt/libfdt_internal.h	2018-08-20 22:31:57.000000000 +0200
++++ b/scripts/dtc/libfdt/libfdt_internal.h	2018-08-29 04:04:17.344885992 +0200
+@@ -50,7 +50,7 @@
+  *     OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE,
+  *     EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+  */
+-#include <fdt.h>
++#include "fdt.h"
+ 
+ #define FDT_ALIGN(x, a)		(((x) + (a) - 1) & ~((a) - 1))
+ #define FDT_TAGALIGN(x)		(FDT_ALIGN((x), FDT_TAGSIZE))
+diff -ru a/scripts/dtc/util.c b/scripts/dtc/util.c
+--- a/scripts/dtc/util.c	2018-08-20 22:31:57.000000000 +0200
++++ b/scripts/dtc/util.c	2018-08-29 04:50:06.951917015 +0200
+@@ -32,7 +32,7 @@
+ #include <fcntl.h>
+ #include <unistd.h>
+ 
+-#include "libfdt.h"
++#include "libfdt/libfdt.h"
+ #include "util.h"
+ #include "version_gen.h"
+ 

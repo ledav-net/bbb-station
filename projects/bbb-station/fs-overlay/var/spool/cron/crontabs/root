@@ -1,0 +1,2 @@
+*/3 * * * * /root/bin/add-to-csv.sh
+

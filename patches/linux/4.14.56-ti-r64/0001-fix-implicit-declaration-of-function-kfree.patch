@@ -1,0 +1,34 @@
+/*
+ * Copyright (C) 2018 David De Grave <david@ledav.net>
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, version 3.
+ *
+ * This program is distributed in the hope that it will be useful, but
+ * WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+ * General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program. If not, see <http://www.gnu.org/licenses/>.
+ */
+diff -ru a/include/linux/of.h b/include/linux/of.h
+--- a/include/linux/of.h	2018-08-20 22:31:57.000000000 +0200
++++ b/include/linux/of.h	2018-08-27 16:12:29.483561829 +0200
+@@ -26,6 +26,7 @@
+ #include <linux/property.h>
+ #include <linux/list.h>
+ #include <linux/rhashtable.h>
++#include <linux/slab.h>
+ 
+ #include <asm/byteorder.h>
+ #include <asm/errno.h>
+@@ -1221,7 +1222,6 @@
+ };
+ 
+ #ifdef CONFIG_OF_DYNAMIC
+-#include <linux/slab.h>
+ 
+ extern int of_reconfig_notifier_register(struct notifier_block *);
+ extern int of_reconfig_notifier_unregister(struct notifier_block *);

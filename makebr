@@ -1,0 +1,196 @@
+#!/bin/bash
+
+# Copyright (C) 2018 David De Grave <david@ledav.net>
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, version 3.
+#
+# This program is distributed in the hope that it will be useful, but
+# WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+# General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program. If not, see <http://www.gnu.org/licenses/>.
+#
+# Made by David De Grave, 2017
+# david.degrave@mind.be
+
+# CONFIG
+PROJECT="bbb-station"
+BOARD="beaglebone"
+SUFFIX="master"
+
+BUILDROOT_REPO="git://git.buildroot.net/buildroot.git"
+BUILDROOT_BRANCH="master"
+BUILDROOT_TAG="2019.02.1"
+###
+
+BASE_DIR="${PWD}"
+CONFIG_DIR="${BASE_DIR}/configs"
+BUILD=${PROJECT}_${BOARD}
+DEFCONFIG="${PROJECT}_${BOARD}_defconfig"
+EXTERNAL="../projects/${PROJECT}"
+OUTPUT="${BASE_DIR}/o-${BUILD}"
+
+# Space separated list of tools required for the build
+# (Basically the non common tools used in all *-hook scripts)
+HOSTDEPTOOLS=(git)
+
+. scripts/include/log || exit 1
+
+extra=
+overrides=
+debug=0
+init=0
+rebuild=0
+reinstall=0
+srconly=0
+build=normal
+make=make
+
+while [ "${1:0:2}" == '--' ]; do
+	case $1 in
+	 --j)		extra+=" BR2_JLEVEL=$2"; shift;;
+	 --rebuild)	rebuild=1;;
+	 --reinstall)	reinstall=1;;
+	 --low)		make="nice -n 5 -- $make";;
+	 --debug)	debug=1;;
+	 --brief)	build=brief;;
+	 --init)	init=1;;
+	 --source)	srconly=1;;
+	 *)
+		echo "--init      Just download/update external objects"
+		echo "--source    Just go 1 step further and download all the buildroot packages too"
+	 	echo "--rebuild   Restart the build from scratch"
+		echo "--reinstall Force the reinstall of target without a full rebuild"
+	 	echo "--debug     Create a debug build"
+	 	echo "--brief     Create a log file and show lesser outputs"
+		echo "--low       Start building with a lower ressources priority"
+		echo "--j <n>     Use max <n> cpus"
+	 	exit;;
+	esac
+	shift
+done
+
+for tool in ${HOSTDEPTOOLS[*]}; do
+	which $tool &> /dev/null || \
+	  die "The tool '${C_LCY}${tool}${C_NRM}' is missing and required ! Please install it before continuing ..."
+done
+
+clone_if_new() {
+# Clone a repository if it doesn't exist yet
+# $1 = directory name, e.g. buildroot
+# $2 = remote repository, e.g. $BUILDROOT_REPO
+# $3 = branch name, e.g. $BUILDROOT_BRANCH
+# $4 = optional tag name to stick to, e.g. $BUILDROOT_TAG
+
+	if [ ! -d "$1" ]; then
+		log "Retreiving buildroot from upstream ..."
+
+		if ! git ls-remote --heads "$2" "$3" > /dev/null; then
+			echo
+			echo "There was a problem retreiving buildroot..."
+			echo
+			echo "Make sure that:"
+			echo "  1. The repository is the right one: $2"
+			echo "  2. Your ssh key is registered at the remote."
+			echo "  3. You have (read) access to this repository."
+			echo "  4. The branch '$3' exists."
+			[ $4 ] && \
+			echo "  5. The tag '$4' exist."
+			exit 1
+		fi
+		log "Cloning branch '$3' from $2 ..."
+		git clone --branch "$3" "$2" "$1" || die "Exit code $?"
+		if [ $4 ]; then
+			log "Checking out tag '$4'"
+			git -C "$1" checkout "$4" 2>&1 | grep "^HEAD" || die "Exit code $?"
+		fi
+	fi
+	return 0
+}
+
+clone_if_new buildroot "$BUILDROOT_REPO" "$BUILDROOT_BRANCH" "$BUILDROOT_TAG"
+
+if [ $init -eq 1 ]; then
+	log "Externals downloaded ..."
+	exit 0
+fi
+
+if [ ! -f "${CONFIG_DIR}/$DEFCONFIG" ]; then
+	echo "defconfig '$DEFCONFIG' not found !"
+	exit 2
+fi
+
+if   [ $rebuild -eq 1 ]; then
+	read -p "Sure to cleanup everything ?!! (CTRL-C to abord)"
+	[ -e "$OUTPUT/debug_build" ] && mv "$OUTPUT/debug_build" /tmp/~debug_build.$$
+	rm -rf "$OUTPUT" "$BUILD.log"
+elif [ $reinstall -eq 1 ]; then
+	find $OUTPUT/build -regex '.*\.stamp_.*\(built\|installed\)' -delete
+	rm -rf $OUTPUT/{final,staging} $OUTPUT/{host,images,target}/*
+fi
+
+brief() {
+	local ret start d h m mf sf line
+
+	start=${SECONDS}
+
+	$make -C buildroot "O=$OUTPUT" $extra "${@}" 2>&1 | ( \
+		while read line; do
+			printf "%(%H:%M:%S)T %s\n" -1 "${line}"
+		done \
+		|tee -a ${BUILD}.log \
+		|grep --line-buffered --colour=never -E '>>>'
+	)
+	ret=${PIPESTATUS[0]}
+
+	d=$((SECONDS-start))
+	printf "Done in "
+	h=$((d/3600))
+	d=$((d%3600))
+	[ ${h} -eq 0 ] || { printf "%dh " ${h}; mf="02"; }
+	m=$((d/60))
+	d=$((d%60))
+	[ ${m} -eq 0 ] || { printf "%${mf}dmin " ${m}; sf="02"; }
+	printf "%${sf}ds\n" ${d}
+	
+	return ${ret}
+}
+
+normal() {
+	$make -C buildroot "O=$OUTPUT" $extra "$@"
+	return $?
+}
+
+if [ ! -e "$OUTPUT" ]; then
+	mv /tmp/~debug_build.$$ "$OUTPUT/debug_build" 2>/dev/null
+	if [ $debug -eq 1 ]; then
+		[ -e "$OUTPUT/debug_build" ] || cp -a configs/debug_build "$OUTPUT"
+		${EDITOR:-vi} "$OUTPUT/debug_build"
+		touch "$OUTPUT/debug_build"
+	fi
+	mkdir -p dl
+	log "Configuring buildroot ..."
+	overrides+=" BR2_EXTERNAL=$EXTERNAL"
+	overrides+=" BR2_DEFCONFIG=$CONFIG_DIR/$DEFCONFIG"
+	$build defconfig $overrides || die "Error code $?"
+	# Patching the config to change the download dir
+	sed -i -e 's/\(^BR2_DL_DIR=\).*/\1"..\/dl"/' "$OUTPUT/.config"
+
+	log "Downloading/checking all the source packages ..."
+	$build source || die "Error code $?"
+fi
+
+if [ $srconly -eq 1 ]; then
+	log "Sources/Externals downloaded ..."
+	exit 0
+fi
+
+log "Start building $(date)"
+$build "${@}" || die "Error code $?"
+log "Build well done $(date)"
+
+exit 0

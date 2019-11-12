@@ -1,0 +1,12 @@
+
+bootpart=0:1
+devtype=mmc
+
+bootdir=
+bootfile=zImage
+bootpartition=mmcblk0p2
+
+setenvfdt=setenv fdtfile bbb-station.dtb
+setenvboot=setenv bootargs console=ttyS0,115200n8 root=/dev/${bootpartition} rw rootfstype=ext4 rootwait
+
+uenvcmd=run setenvfdt;run setenvboot;run loadimage;run loadfdt;printenv bootargs;bootz ${loadaddr} - ${fdtaddr}

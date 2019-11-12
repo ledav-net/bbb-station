@@ -1,0 +1,221 @@
+<!doctype html>
+<!--
+# Copyright (C) 2018 David De Grave <david@ledav.net>
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, version 3.
+#
+# This program is distributed in the hope that it will be useful, but
+# WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+# General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program. If not, see <http://www.gnu.org/licenses/>.
+-->
+<html>
+<head>
+<meta charset="UTF-8">
+<link type="text/css" rel="stylesheet" href="ledav.net-public.css">
+<script src="chart.js"></script>
+<script src="jquery.js"></script>
+</head>
+<body>
+<div id='graph' style='margin: auto; width: 96%;'>
+    <div class='menu'>
+        <button type="button" name="btn-reset">reset</button>
+        <button type="button" name="btn-realtime">realtime</button></div>
+    <div id='status'>
+        <div id="message" style="display:none"></div></div>
+    <canvas id="chart" style="border:1px solid #000000;"></canvas>
+</div>
+<script>
+var realtime = 0;
+var refresh = 30; // Auto update new values each 30 seconds
+var refresher;
+var lastdt = "";
+var sensors = 6;
+var rt_refresh = 5; // Auto update values each 5 seconds in real time mode
+var rt_window = 600 / rt_refresh; // Keep 10 mins (600 seconds) of values
+var ctx = document.getElementById("chart").getContext('2d');
+
+var chart = new Chart(ctx, {
+    type: 'line',
+    data: {
+        labels: [],	// X axis values
+        datasets: [{
+            label: 'Humidity %',
+            backgroundColor: 'rgba(0, 102, 204, 1)',
+            borderColor: 'rgba(0, 102, 204, 1)',
+            borderWidth: 2,
+            pointRadius: 0,
+            hitRadius: 10,
+            fill: false,
+            tension: 0.4, 
+            data: []	// serie 1 Y axis values
+        },{
+            label: 'Temperature °C',
+            backgroundColor: 'rgba(249, 6, 6, 1)',
+            borderColor: 'rgba(249, 6, 6, 1)',
+            borderWidth: 2,
+            pointRadius: 0,
+            hitRadius: 10,
+            tension: 0.4,
+            fill: false,
+            data: []	// serie 2 Y axis values
+        },{
+            label: 'Luminosity %',
+            backgroundColor: 'rgba(255, 255, 255, 1)',
+            borderColor: 'rgba(255, 255, 255, 1)',
+            borderWidth: 2,
+            pointRadius: 0,
+            hitRadius: 10,
+            tension: 0.4,
+            fill: false,
+            data: []	// serie 3 Y axis values
+        },{
+            label: 'Light (Lux)',
+            backgroundColor: 'rgba(255, 255, 1, 1)',
+            borderColor: 'rgba(255, 255, 1, 1)',
+            borderWidth: 2,
+            pointRadius: 0,
+            hitRadius: 10,	
+            tension: 0.4,
+            fill: false,
+            data: []	// serie 4 Y axis values
+        },{
+            label: 'CO2-eq ppm/1000',
+            backgroundColor: 'rgb(0, 179, 179)',
+            borderColor: 'rgb(0, 179, 179)',
+            borderWidth: 2,
+            pointRadius: 0,
+            hitRadius: 10,
+            tension: 0.4,
+            fill: false,
+            data: []	// serie 5 Y axis values
+        },{
+            label: 'TVOC ppm',
+            backgroundColor: 'rgb(0, 204, 0)',
+            borderColor: 'rgb(0, 204, 0)',
+            borderWidth: 2,
+            pointRadius: 0,
+            hitRadius: 10,
+            tension: 0.4,
+            fill: false,
+            data: []	// serie 6 Y axis values
+        }],
+    },
+    options: {
+        responsive: true,
+        hover: {
+            mode: 'nearest',
+            intersect: true
+        },
+        tooltips: {
+            mode: 'index',
+            position: 'nearest',
+            caretPadding: 8,
+            intersect: false
+        },
+        title: {
+            display: true,
+            text: 'bbb-station - sensors'
+        },
+        scales: {
+            xAxes: [{
+                distribution: 'series',
+                scaleLabel: {
+                    display: true,
+                    labelString: 'Date & Time'
+                }
+            }],
+            yAxes: [{
+                ticks: {
+//                    min: 15,
+                    beginAtZero: false
+                }
+            }]
+        }
+    }
+});
+
+function updateCounters() {
+    jQuery.get("get-datas.php?since="+lastdt, function(datas) {
+        var rows = datas.split('\n');
+        var upd  = 0;
+        rows.pop(); // Throw last empty record
+        for ( i=0 ; i < rows.length ; i++ ) {
+            var t = rows[i].split(',');
+            chart.data.labels.push(t[0]);
+            for ( dsi=0 ; dsi < sensors ; dsi++ ) {
+                chart.data.datasets[dsi].data.push(t[dsi+1]);
+            }
+            lastdt = t[0];
+            upd = 1;
+        }
+        if ( upd == 1 ) chart.update();
+    });
+    return 0;
+}
+
+function updateCountersRT() {
+    jQuery.get("get-datas-rt.php", function(datas) {
+        var t = datas.split(',');
+        chart.data.labels.push(t[0]);
+        for ( dsi=0 ; dsi < sensors ; dsi++ ) {
+            chart.data.datasets[dsi].data.push(t[dsi+1]);
+        }
+        if ( chart.data.labels.length > rt_window ) {
+            chart.data.labels.shift();
+            for ( dsi=0 ; dsi < sensors ; dsi++ ) {
+                chart.data.datasets[dsi].data.shift();
+            }
+        }
+        chart.update({duration:1500,easing:'easeOutQuad'});
+    });
+    return 0;
+}
+
+$(function() {
+    $("button").click(function() {
+        var name = $(this).attr("name");
+        if ( name == 'btn-realtime' ) {
+            chart.data.labels = [];
+            for ( dsi=0 ; dsi < sensors ; dsi++ )
+                chart.data.datasets[dsi].data = [];
+            lastdt = "";
+
+            chart.clear();
+            chart.update();
+            clearInterval(refresher);
+
+            if ( realtime == 1 ) {
+                realtime = 0;
+                $(this).text("realtime");
+                updateCounters();
+                refresher = setInterval(updateCounters, refresh * 1000);
+            }else{
+                realtime = 1;
+                $(this).text("history");
+                chart.data.labels.length = rt_window;
+                for ( dsi=0 ; dsi < sensors ; dsi++ )
+                    chart.data.datasets[dsi].data.length = rt_window;
+                updateCountersRT();
+                refresher = setInterval(updateCountersRT, rt_refresh * 1000);
+            }
+        }else{
+            $("#message").html("Processing...").show();
+            $.post("post-datas.php", { "click": name }, function(data, status) {
+                $("#message").html(data);
+                setTimeout(function() { $("#message").fadeOut("slow"); }, 2000);
+            });
+        }
+    });
+});
+
+updateCounters();
+refresher = setInterval(updateCounters, refresh * 1000);
+</script>  
+</body>
+</html>

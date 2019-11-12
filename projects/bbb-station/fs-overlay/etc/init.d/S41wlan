@@ -1,0 +1,41 @@
+#!/bin/sh
+#
+# Start the wlan network....
+
+DEVICE=wlan0
+
+case "$1" in
+  start)
+	printf "Waiting for $DEVICE to become ready: "
+	while ! /sbin/ifconfig $DEVICE &>/dev/null; do
+		usleep 250000
+		printf "."
+	done
+	echo "OK"
+	printf "Starting $DEVICE: "
+	/sbin/wpa_supplicant -Dnl80211 -i$DEVICE -c /etc/wpa_supplicant.conf -P /var/run/wpa_supplicant.pid -B
+	/sbin/udhcpc -i $DEVICE -b -p /var/run/udhcpc-$DEVICE.pid
+	if [ $? = 0 ]; then
+		echo "OK"
+		# Now that we (should) have a network, restart syslog in case of remote logging is needed
+		/etc/init.d/S01logging restart
+	else
+		echo "FAIL"
+	fi
+	;;
+  stop)
+	printf "Stopping $DEVICE: "
+	[ -s /var/run/udhcpc-$DEVICE.pid ] && kill $(cat /var/run/udhcpc-$DEVICE.pid)
+	[ -s /var/run/wpa_supplicant.pid ] && kill $(cat /var/run/wpa_supplicant.pid)
+	[ $? = 0 ] && echo "OK" || echo "FAIL"
+	;;
+  restart|reload)
+	"$0" stop
+	"$0" start
+	;;
+  *)
+	echo "Usage: $0 {start|stop|restart}"
+	exit 1
+esac
+
+exit $?
