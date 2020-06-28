@@ -14,7 +14,7 @@
 # along with this program. If not, see <http://www.gnu.org/licenses/>.
 
 SGP30_SOURCE = Sensirion_Gas_Sensors_SGP30_Linux_Driver.zip
-SGP30_SITE = https://www.sensirion.com/fileadmin/user_upload/customers/sensirion/Dokumente/13_Sample_Codes_Software/Gas_Sensors
+SGP30_SITE = https://www.ledav.net/download/pub
 SGP30_LICENSE = GPL-2.0+
 SGP30_LICENSE_FILE = LICENSE
 SGP30_MODULE_SUBDIRS = sgp30
