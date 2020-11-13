@@ -1,7 +1,7 @@
 
-----------------------------
-### BBB-Station Project 2018
-----------------------------
+---------------------------------
+### BBB-Station Project 2018-2020
+---------------------------------
 
 Beagle Bone Black Wireless Monitoring Station
 
